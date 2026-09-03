@@ -19,8 +19,11 @@ fi
 
 # --- Frontend --------------------------------------------------------------
 npm ci
-# Fetch the Pyodide runtime assets the frontend bundles (also run by `npm run dev`).
-node scripts/prepare-pyodide.js
+# Build the production frontend into ./build (gitignored). This also fetches the
+# Pyodide runtime assets. The backend syncs ./build/static into its own static
+# dir on startup, so building keeps the git tree clean and lets the backend
+# serve the full app on :8080 in addition to the Vite dev server on :5173.
+npm run build
 
 # --- Backend ---------------------------------------------------------------
 if [ ! -x .venv/bin/python ]; then
