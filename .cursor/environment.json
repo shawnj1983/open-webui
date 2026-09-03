@@ -1,0 +1,18 @@
+{
+	"name": "Open WebUI",
+	"install": "bash .cursor/install.sh",
+	"terminals": [
+		{
+			"name": "backend",
+			"command": "cd backend && . /workspace/.venv/bin/activate && export WEBUI_SECRET_KEY=\"$(cat .webui_secret_key)\" && bash dev.sh"
+		},
+		{
+			"name": "frontend",
+			"command": "npm run dev"
+		}
+	],
+	"ports": [
+		{ "name": "backend (FastAPI)", "port": 8080 },
+		{ "name": "frontend (Vite)", "port": 5173 }
+	]
+}
