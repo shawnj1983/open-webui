@@ -1,0 +1,47 @@
+# OpenManus + OpenRouter multi-key CLI
+
+Wire [OpenManus](https://github.com/FoundationAgents/OpenManus) to OpenRouter using a rotating pool of API keys (12+ supported).
+
+## Setup keys (do NOT commit real keys)
+
+```bash
+mkdir -p ~/.config/openrouter
+python3 -m openmanus_openrouter keys-example --count 12 > ~/.config/openrouter/keys.txt
+# edit the file and paste your real keys, one per line
+chmod 600 ~/.config/openrouter/keys.txt
+```
+
+Or set env vars:
+
+```bash
+export OPENROUTER_API_KEYS='sk-or-v1-...,sk-or-v1-...'
+# or OPENROUTER_API_KEY_1 ... OPENROUTER_API_KEY_12
+export OPENROUTER_MODEL='anthropic/claude-3.5-sonnet'   # pick any OpenRouter model
+```
+
+## Commands
+
+```bash
+cd /path/to/open-webui/scripts
+python3 -m openmanus_openrouter status --keys-file ~/.config/openrouter/keys.txt
+
+# Write OpenManus config.toml
+python3 -m openmanus_openrouter write-config \
+  --keys-file ~/.config/openrouter/keys.txt \
+  --output ~/OpenManus/config/config.toml \
+  --model openrouter/auto
+
+# Rotate to next key and launch OpenManus
+python3 -m openmanus_openrouter run \
+  --keys-file ~/.config/openrouter/keys.txt \
+  --openmanus-dir ~/OpenManus \
+  --model openrouter/auto
+```
+
+Clone OpenManus first if needed:
+
+```bash
+git clone https://github.com/FoundationAgents/OpenManus.git ~/OpenManus
+cd ~/OpenManus && uv venv --python 3.12 && source .venv/bin/activate
+uv pip install -r requirements.txt
+```

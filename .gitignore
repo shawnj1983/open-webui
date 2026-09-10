@@ -314,3 +314,9 @@ cypress/screenshots
 
 # YouTube content scraper runtime output
 scripts/youtube_content_scraper/output/
+
+# OpenRouter / OpenManus local secrets
+**/openrouter/keys.txt
+**/.openrouter_keys
+scripts/openmanus_openrouter/*.toml
+scripts/openmanus_openrouter/config.toml
