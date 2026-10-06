@@ -46,6 +46,7 @@
 	import { goto } from '$app/navigation';
 
 	import Dropdown from '$lib/components/common/Dropdown.svelte';
+	import DropdownMenu from '$lib/components/common/DropdownMenu.svelte';
 	import AdminViewSelector from './Models/AdminViewSelector.svelte';
 	import TagSelector from '$lib/components/workspace/common/TagSelector.svelte';
 	import Pagination from '$lib/components/common/Pagination.svelte';
@@ -381,12 +382,12 @@
 	{#if selectedModelId === null}
 		<div class="flex flex-col gap-1 mt-1.5 mb-2">
 			<div class="flex justify-between items-center">
-				<div class="flex items-center md:self-center text-xl font-medium px-0.5 gap-2 shrink-0">
+				<div class="flex items-center md:self-center text-xl font-normal px-0.5 gap-2 shrink-0">
 					<div>
 						{$i18n.t('Models')}
 					</div>
 
-					<div class="text-lg font-medium text-gray-500 dark:text-gray-500">
+					<div class="text-lg font-normal text-gray-500 dark:text-gray-500">
 						{filteredModels.length}
 					</div>
 				</div>
@@ -438,7 +439,7 @@
 							{#if modelsImportInProgress}
 								<Spinner className="size-3" />
 							{/if}
-							<div class=" self-center font-medium line-clamp-1">
+							<div class=" self-center font-normal line-clamp-1">
 								{$i18n.t('Import')}
 							</div>
 						</button>
@@ -449,7 +450,7 @@
 								downloadModels(models);
 							}}
 						>
-							<div class=" self-center font-medium line-clamp-1">
+							<div class=" self-center font-normal line-clamp-1">
 								{$i18n.t('Export')}
 							</div>
 						</button>
@@ -462,19 +463,19 @@
 							showManageModal = true;
 						}}
 					>
-						<div class=" self-center font-medium line-clamp-1">
+						<div class=" self-center font-normal line-clamp-1">
 							{$i18n.t('Manage')}
 						</div>
 					</button>
 
 					<button
-						class="flex text-xs items-center space-x-1 px-3 py-1.5 rounded-xl bg-black hover:bg-gray-900 text-white dark:bg-white dark:hover:bg-gray-100 dark:text-black transition font-medium"
+						class="flex text-xs items-center space-x-1 px-3 py-1.5 rounded-xl bg-black hover:bg-gray-900 text-white dark:bg-white dark:hover:bg-gray-100 dark:text-black transition font-normal"
 						type="button"
 						on:click={() => {
 							showConfigModal = true;
 						}}
 					>
-						<div class=" self-center font-medium line-clamp-1">
+						<div class=" self-center font-normal line-clamp-1">
 							{$i18n.t('Settings')}
 						</div>
 					</button>
@@ -535,60 +536,58 @@
 							class="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
 							type="button"
 						>
-							<EllipsisHorizontal className="size-4" />
+							<EllipsisHorizontal className="size-3.5" />
 						</button>
 					</Tooltip>
 
 					<div slot="content">
-						<div
-							class="w-[170px] rounded-xl p-1 border border-gray-100 dark:border-gray-800 z-50 bg-white dark:bg-gray-850 dark:text-white shadow-sm"
-						>
+						<DropdownMenu className="w-[170px]">
 							<button
-								class="select-none flex w-full gap-2 items-center px-3 py-1.5 text-sm font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md"
+								class="select-none flex w-full gap-2 items-center h-[1.6875rem] px-2 text-[13px] font-normal cursor-pointer hover:bg-gray-50/40 dark:hover:bg-gray-800/40 rounded-xl"
 								type="button"
 								on:click={() => {
 									enableAllHandler();
 								}}
 							>
-								<CheckCircle className="size-4" />
+								<CheckCircle className="size-3.5" />
 								<div class="flex items-center">{$i18n.t('Enable All')}</div>
 							</button>
 
 							<button
-								class="select-none flex w-full gap-2 items-center px-3 py-1.5 text-sm font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md"
+								class="select-none flex w-full gap-2 items-center h-[1.6875rem] px-2 text-[13px] font-normal cursor-pointer hover:bg-gray-50/40 dark:hover:bg-gray-800/40 rounded-xl"
 								type="button"
 								on:click={() => {
 									disableAllHandler();
 								}}
 							>
-								<Minus className="size-4" />
+								<Minus className="size-3.5" />
 								<div class="flex items-center">{$i18n.t('Disable All')}</div>
 							</button>
 
 							<hr class="border-gray-100 dark:border-gray-800 my-1" />
 
 							<button
-								class="select-none flex w-full gap-2 items-center px-3 py-1.5 text-sm font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md"
+								class="select-none flex w-full gap-2 items-center h-[1.6875rem] px-2 text-[13px] font-normal cursor-pointer hover:bg-gray-50/40 dark:hover:bg-gray-800/40 rounded-xl"
 								type="button"
 								on:click={() => {
 									showAllHandler();
 								}}
 							>
-								<Eye className="size-4" />
+								<Eye className="size-3.5" />
 								<div class="flex items-center">{$i18n.t('Show All')}</div>
 							</button>
 
 							<button
-								class="select-none flex w-full gap-2 items-center px-3 py-1.5 text-sm font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md"
+								class="select-none flex w-full gap-2 items-center h-[1.6875rem] px-2 text-[13px] font-normal cursor-pointer hover:bg-gray-50/40 dark:hover:bg-gray-800/40 rounded-xl"
 								type="button"
 								on:click={() => {
 									hideAllHandler();
 								}}
 							>
-								<EyeSlash className="size-4" />
+								<EyeSlash className="size-3.5" />
 								<div class="flex items-center">{$i18n.t('Hide All')}</div>
 							</button>
-						</div>
+						</DropdownMenu>
 					</div>
 				</Dropdown>
 			</div>
@@ -641,7 +640,7 @@
 										className=" w-fit"
 										placement="top-start"
 									>
-										<div class="font-medium line-clamp-1 flex items-center gap-2">
+										<div class="font-normal line-clamp-1 flex items-center gap-2">
 											{model.name}
 
 											<Badge
@@ -708,7 +707,7 @@
 											viewBox="0 0 24 24"
 											stroke-width="1.5"
 											stroke="currentColor"
-											class="w-4 h-4"
+											class="size-3.5"
 										>
 											<path
 												stroke-linecap="round"
@@ -768,7 +767,7 @@
 					<div class=" w-full h-full flex flex-col justify-center items-center my-16 mb-24">
 						<div class="max-w-md text-center">
 							<div class=" text-3xl mb-3">😕</div>
-							<div class=" text-lg font-medium mb-1">{$i18n.t('No models found')}</div>
+							<div class=" text-lg font-normal mb-1">{$i18n.t('No models found')}</div>
 							<div class=" text-gray-500 text-center text-xs">
 								{$i18n.t('Try adjusting your search or filter to find what you are looking for.')}
 							</div>

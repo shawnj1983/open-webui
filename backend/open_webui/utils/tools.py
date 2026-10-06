@@ -35,6 +35,7 @@ from open_webui.env import (
     AIOHTTP_CLIENT_TIMEOUT_TOOL_SERVER,
     AIOHTTP_CLIENT_TIMEOUT_TOOL_SERVER_DATA,
     ENABLE_FORWARD_USER_INFO_HEADERS,
+    ENABLE_PLUGINS,
     FORWARD_SESSION_INFO_HEADER_CHAT_ID,
     FORWARD_SESSION_INFO_HEADER_MESSAGE_ID,
     REDIS_KEY_PREFIX,
@@ -50,6 +51,7 @@ from open_webui.tools.builtin import (
     create_automation,
     create_calendar_event,
     create_tasks,
+    delegate_task,
     delete_automation,
     delete_calendar_event,
     delete_memory,
@@ -97,6 +99,7 @@ from open_webui.utils.access_control import has_access, has_connection_access, h
 from open_webui.utils.headers import get_custom_headers, include_user_info_headers
 from open_webui.utils.misc import is_string_allowed
 from open_webui.utils.plugin import get_tool_contents_cache, get_tools_cache, load_tool_module_by_id
+from open_webui.utils.terminals import get_terminal_server_url
 from pydantic import BaseModel, Field, create_model
 from pydantic.fields import FieldInfo
 
@@ -253,6 +256,9 @@ async def get_updated_tool_function(function: Callable, extra_params: dict):
 
 async def get_tools(request: Request, tool_ids: list[str], user: UserModel, extra_params: dict) -> dict[str, dict]:
     """Load tools for the given tool_ids, checking access control."""
+    if not ENABLE_PLUGINS:
+        return {}
+
     if not tool_ids:
         return {}
 
@@ -495,6 +501,8 @@ async def get_builtin_tools(
         'channels.enable',
         'automations.enable',
         'calendar.enable',
+        'subagents.enable',
+        'subagents.background_enabled',
     )
 
     async def has_user_permission(feature_key: str) -> bool:
@@ -558,6 +566,14 @@ async def get_builtin_tools(
     # Chats tools - search and fetch user's chat history
     if is_builtin_tool_enabled('chats'):
         builtin_functions.extend([search_chats, view_chat])
+
+    if (
+        is_builtin_tool_enabled('subagents')
+        and config.get('subagents.enable')
+        and getattr(request.state, 'internal', False) is not True
+        and getattr(request.state, 'direct', False) is not True
+    ):
+        builtin_functions.append(delegate_task)
 
     # Add memory tools when memory is enabled and the model allows this builtin category.
     if (
@@ -656,6 +672,11 @@ async def get_builtin_tools(
             [search_calendar_events, create_calendar_event, update_calendar_event, delete_calendar_event]
         )
 
+    if getattr(request.state, 'internal', False) is True:
+        from open_webui.utils.subagents import MUTATING_MEMORY_TOOLS
+
+        builtin_functions = [func for func in builtin_functions if func.__name__ not in MUTATING_MEMORY_TOOLS]
+
     for func in builtin_functions:
         callable = await get_async_tool_function_and_apply_extra_params(
             func,
@@ -675,6 +696,11 @@ async def get_builtin_tools(
         pydantic_model = convert_function_to_pydantic_model(func)
         spec = convert_pydantic_model_to_openai_function_spec(pydantic_model)
         spec = clean_openai_tool_schema(spec)
+        if func.__name__ == 'delegate_task' and not config.get('subagents.background_enabled'):
+            parameters = spec.get('parameters', {})
+            parameters.get('properties', {}).pop('background', None)
+            if isinstance(parameters.get('required'), list):
+                parameters['required'] = [name for name in parameters['required'] if name != 'background']
 
         tools_dict[func.__name__] = {
             'tool_id': f'builtin:{func.__name__}',
@@ -1071,7 +1097,9 @@ async def get_terminal_system_prompt(
             trust_env=True,
         ) as session:
             # 1. Check feature flag
-            async with session.get(f'{base}/api/config', ssl=AIOHTTP_CLIENT_SESSION_SSL) as resp:
+            async with session.get(
+                f'{base}/api/config', headers=headers, cookies=cookies or {}, ssl=AIOHTTP_CLIENT_SESSION_SSL
+            ) as resp:
                 if resp.status != 200:
                     return None
                 config = await resp.json()
@@ -1103,13 +1131,7 @@ async def set_terminal_servers(request: Request):
 
         enabled = connection.get('enabled', True)
 
-        base_url = connection.get('url', '').rstrip('/')
-        policy_id = connection.get('policy_id', '')
-
-        # Orchestrator connections route through /p/{policy_id}/ — the
-        # OpenAPI spec lives on the proxied terminal, not the orchestrator.
-        if connection.get('server_type') == 'orchestrator' and policy_id:
-            base_url = f'{base_url}/p/{policy_id}'
+        base_url = get_terminal_server_url(connection)
 
         server_configs.append(
             {
@@ -1139,6 +1161,8 @@ async def set_terminal_servers(request: Request):
         headers = {}
         if connection.get('auth_type', 'bearer') == 'bearer':
             headers.update(bearer_auth_header(connection.get('key', '')))
+        if connection.get('policy_id'):
+            headers['X-User-Id'] = 'system'
         prompt = await get_terminal_system_prompt(server['url'], headers)
         if prompt:
             server['system_prompt'] = prompt
@@ -1188,24 +1212,21 @@ async def get_terminal_tools(
     connections = await Config.get('terminal_server.connections', []) or []
     connection = next((c for c in connections if c.get('id') == terminal_id), None)
     if connection is None:
-        log.warning(f'Terminal server not found: {terminal_id}')
-        return {}
+        raise RuntimeError(f"Terminal server '{terminal_id}' not found")
 
     user_group_ids = {group.id for group in await Groups.get_groups_by_member_id(user.id)}
     if not await has_connection_access(user, connection, user_group_ids):
-        log.warning(f'Access denied to terminal {terminal_id} for user {user.id}')
-        return {}
+        raise RuntimeError(f'Access denied to terminal {terminal_id}')
 
     # Find the cached spec data for this terminal
     terminal_servers = await get_terminal_servers(request)
     server_data = next((s for s in terminal_servers if s.get('id') == terminal_id), None)
     if server_data is None:
-        log.warning(f'Terminal server spec not found for {terminal_id}')
-        return {}
+        raise RuntimeError(f"Terminal server '{terminal_id}' is unavailable")
 
     specs = server_data.get('specs', [])
     if not specs:
-        return {}
+        raise RuntimeError(f"Terminal server '{terminal_id}' has no available tools")
 
     # Build auth headers
     auth_type = connection.get('auth_type', 'bearer')
@@ -1232,7 +1253,7 @@ async def get_terminal_tools(
     if session_id:
         headers['X-Session-Id'] = session_id
 
-    terminal_cwd = await get_terminal_cwd(connection.get('url', ''), headers, cookies)
+    terminal_cwd = await get_terminal_cwd(server_data['url'], headers, cookies)
 
     tools_dict = {}
     for spec in specs:

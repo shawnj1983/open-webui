@@ -26,6 +26,7 @@
 	import FeedbackModal from './FeedbackModal.svelte';
 	import EllipsisHorizontal from '$lib/components/icons/EllipsisHorizontal.svelte';
 	import Dropdown from '$lib/components/common/Dropdown.svelte';
+	import DropdownMenu from '$lib/components/common/DropdownMenu.svelte';
 
 	import ChevronUp from '$lib/components/icons/ChevronUp.svelte';
 	import ChevronDown from '$lib/components/icons/ChevronDown.svelte';
@@ -217,12 +218,12 @@
 {:else}
 	<div class="flex flex-col gap-1 mt-0.5 mb-3">
 		<div class="flex justify-between items-center">
-			<div class="flex items-center md:self-center text-xl font-medium px-0.5 gap-2 shrink-0">
+			<div class="flex items-center md:self-center text-xl font-normal px-0.5 gap-2 shrink-0">
 				<div>
 					{$i18n.t('Feedback History')}
 				</div>
 
-				<div class="text-lg font-medium text-gray-500 dark:text-gray-500">
+				<div class="text-lg font-normal text-gray-500 dark:text-gray-500">
 					{total}
 				</div>
 			</div>
@@ -233,18 +234,16 @@
 						<button
 							class="flex text-xs items-center space-x-1 px-3 py-1.5 rounded-xl bg-gray-50 hover:bg-gray-100 dark:bg-gray-850 dark:hover:bg-gray-800 dark:text-gray-200 transition"
 						>
-							<div class="self-center font-medium line-clamp-1">
+							<div class="self-center font-normal line-clamp-1">
 								{$i18n.t('Export')}
 							</div>
 							<ChevronDown className="size-3" strokeWidth="2.5" />
 						</button>
 
 						<div slot="content">
-							<div
-								class="w-[170px] rounded-2xl p-1 border border-gray-100 dark:border-gray-800 z-50 bg-white dark:bg-gray-850 dark:text-white shadow-lg"
-							>
+							<DropdownMenu className="w-[170px]">
 								<button
-									class="select-none flex w-full gap-2 items-center px-3 py-1.5 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
+									class="select-none flex w-full gap-2 items-center h-[1.6875rem] px-2 text-[13px] font-normal cursor-pointer hover:bg-gray-50/40 dark:hover:bg-gray-800/40 rounded-xl"
 									type="button"
 									on:click={() => exportHandler('json')}
 								>
@@ -252,13 +251,13 @@
 								</button>
 
 								<button
-									class="select-none flex w-full gap-2 items-center px-3 py-1.5 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl"
+									class="select-none flex w-full gap-2 items-center h-[1.6875rem] px-2 text-[13px] font-normal cursor-pointer hover:bg-gray-50/40 dark:hover:bg-gray-800/40 rounded-xl"
 									type="button"
 									on:click={() => exportHandler('csv')}
 								>
 									{$i18n.t('Export as CSV')}
 								</button>
-							</div>
+							</DropdownMenu>
 						</div>
 					</Dropdown>
 				{/if}
@@ -320,7 +319,7 @@
 				<div class="w-full h-full flex flex-col justify-center items-center my-16 mb-24">
 					<div class="max-w-md text-center">
 						<div class="text-3xl mb-3">😕</div>
-						<div class="text-lg font-medium mb-1">{$i18n.t('No feedback found')}</div>
+						<div class="text-lg font-normal mb-1">{$i18n.t('No feedback found')}</div>
 						<div class="text-gray-500 text-center text-xs">
 							{$i18n.t('Try adjusting your search or filter to find what you are looking for.')}
 						</div>
@@ -433,7 +432,7 @@
 								class="bg-white dark:bg-gray-900 dark:border-gray-850 text-xs cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-850/50 transition rounded-xl"
 								on:click={() => openFeedbackModal(feedback)}
 							>
-								<td class=" py-0.5 text-right font-medium">
+								<td class=" py-0.5 text-right font-normal">
 									<div class="flex justify-center">
 										<Tooltip content={feedback?.user?.name}>
 											<div class="shrink-0">
@@ -453,7 +452,7 @@
 											{#if feedback.data?.sibling_model_ids}
 												<Tooltip content={feedback.data?.model_id} placement="top-start">
 													<div
-														class="font-medium text-gray-600 dark:text-gray-400 flex-1 line-clamp-1"
+														class="font-normal text-gray-600 dark:text-gray-400 flex-1 line-clamp-1"
 													>
 														{feedback.data?.model_id}
 													</div>
@@ -477,7 +476,7 @@
 											{:else}
 												<Tooltip content={feedback.data?.model_id} placement="top-start">
 													<div
-														class="text-sm font-medium text-gray-600 dark:text-gray-400 flex-1 py-1.5 line-clamp-1"
+														class="text-sm font-normal text-gray-600 dark:text-gray-400 flex-1 py-1.5 line-clamp-1"
 													>
 														{feedback.data?.model_id}
 													</div>
@@ -488,7 +487,7 @@
 								</td>
 
 								{#if feedback?.data?.rating}
-									<td class="px-3 py-1 text-right font-medium text-gray-900 dark:text-white w-max">
+									<td class="px-3 py-1 text-right font-normal text-gray-900 dark:text-white w-max">
 										<div class=" flex justify-end">
 											{#if feedback?.data?.rating.toString() === '1'}
 												<Badge type="info" content={$i18n.t('Won')} />
@@ -501,11 +500,11 @@
 									</td>
 								{/if}
 
-								<td class=" px-3 py-1 text-right font-medium">
+								<td class=" px-3 py-1 text-right font-normal">
 									{dayjs(feedback.updated_at * 1000).fromNow()}
 								</td>
 
-								<td class=" px-3 py-1 text-right font-medium" on:click={(e) => e.stopPropagation()}>
+								<td class=" px-3 py-1 text-right font-normal" on:click={(e) => e.stopPropagation()}>
 									<FeedbackMenu
 										on:delete={(e) => {
 											deleteFeedbackHandler(feedback.id);

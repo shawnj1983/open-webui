@@ -40,6 +40,7 @@
 	let chatConfig = {
 		ENABLE_CONTEXT_COMPACTION: false,
 		CONTEXT_COMPACTION_TOKEN_THRESHOLD: 80000,
+		CONTEXT_COMPACTION_TOKEN_CAP: 80000,
 		CONTEXT_COMPACTION_PROMPT_TEMPLATE: ''
 	};
 
@@ -107,11 +108,11 @@
 	>
 		<div class="  overflow-y-scroll scrollbar-hidden h-full pr-1.5">
 			<div class="mb-3.5">
-				<div class=" mt-0.5 mb-2.5 text-base font-medium">{$i18n.t('Tasks')}</div>
+				<div class=" mt-0.5 mb-2.5 text-base font-normal">{$i18n.t('Tasks')}</div>
 
 				<hr class=" border-gray-100/30 dark:border-gray-850/30 my-2" />
 
-				<div class=" mb-2 font-medium flex items-center">
+				<div class=" mb-2 font-normal flex items-center">
 					<div class=" text-xs mr-1">{$i18n.t('Task Model')}</div>
 					<Tooltip
 						content={$i18n.t(
@@ -226,7 +227,7 @@
 				<hr class=" border-gray-100/30 dark:border-gray-850/30 my-3" />
 
 				<div class="mb-2.5 flex w-full items-center justify-between">
-					<div class=" self-center text-xs font-medium">
+					<div class=" self-center text-xs font-normal">
 						{$i18n.t('Context Compaction')}
 					</div>
 
@@ -235,7 +236,7 @@
 
 				{#if chatConfig.ENABLE_CONTEXT_COMPACTION}
 					<div class="mb-2.5">
-						<div class=" mb-1 text-xs font-medium">{$i18n.t('Token Threshold')}</div>
+						<div class=" mb-1 text-xs font-normal">{$i18n.t('Token Threshold')}</div>
 
 						<Tooltip
 							content={$i18n.t(
@@ -254,7 +255,26 @@
 					</div>
 
 					<div class="mb-2.5">
-						<div class=" mb-1 text-xs font-medium">{$i18n.t('Context Compaction Prompt')}</div>
+						<div class=" mb-1 text-xs font-normal">{$i18n.t('Token Cap')}</div>
+
+						<Tooltip
+							content={$i18n.t(
+								'Model-specific context compaction thresholds cannot exceed this token limit.'
+							)}
+							placement="top-start"
+						>
+							<input
+								type="number"
+								min="1"
+								step="1"
+								class="w-full rounded-lg py-2 px-4 text-sm bg-gray-50 dark:text-gray-300 dark:bg-gray-850 outline-hidden"
+								bind:value={chatConfig.CONTEXT_COMPACTION_TOKEN_CAP}
+							/>
+						</Tooltip>
+					</div>
+
+					<div class="mb-2.5">
+						<div class=" mb-1 text-xs font-normal">{$i18n.t('Context Compaction Prompt')}</div>
 
 						<Tooltip
 							content={$i18n.t('Leave empty to use the default prompt, or enter a custom prompt')}
@@ -281,7 +301,7 @@
 				<hr class=" border-gray-100/30 dark:border-gray-850/30 my-3" />
 
 				<div class="mb-2.5 flex w-full items-center justify-between">
-					<div class=" self-center text-xs font-medium">
+					<div class=" self-center text-xs font-normal">
 						{$i18n.t('Title Generation')}
 					</div>
 
@@ -290,7 +310,7 @@
 
 				{#if taskConfig.ENABLE_TITLE_GENERATION}
 					<div class="mb-2.5">
-						<div class=" mb-1 text-xs font-medium">{$i18n.t('Title Generation Prompt')}</div>
+						<div class=" mb-1 text-xs font-normal">{$i18n.t('Title Generation Prompt')}</div>
 
 						<Tooltip
 							content={$i18n.t('Leave empty to use the default prompt, or enter a custom prompt')}
@@ -307,7 +327,7 @@
 				{/if}
 
 				<div class="mb-2.5 flex w-full items-center justify-between">
-					<div class=" self-center text-xs font-medium">
+					<div class=" self-center text-xs font-normal">
 						{$i18n.t('Voice Mode Prompt')}
 					</div>
 
@@ -316,7 +336,7 @@
 
 				{#if taskConfig.ENABLE_VOICE_MODE_PROMPT}
 					<div class="mb-2.5">
-						<div class=" mb-1 text-xs font-medium">{$i18n.t('Prompt Template')}</div>
+						<div class=" mb-1 text-xs font-normal">{$i18n.t('Prompt Template')}</div>
 
 						<Tooltip
 							content={$i18n.t('Leave empty to use the default prompt, or enter a custom prompt')}
@@ -333,7 +353,7 @@
 				{/if}
 
 				<div class="mb-2.5 flex w-full items-center justify-between">
-					<div class=" self-center text-xs font-medium">
+					<div class=" self-center text-xs font-normal">
 						{$i18n.t('Follow Up Generation')}
 					</div>
 
@@ -342,7 +362,7 @@
 
 				{#if taskConfig.ENABLE_FOLLOW_UP_GENERATION}
 					<div class="mb-2.5">
-						<div class=" mb-1 text-xs font-medium">{$i18n.t('Follow Up Generation Prompt')}</div>
+						<div class=" mb-1 text-xs font-normal">{$i18n.t('Follow Up Generation Prompt')}</div>
 
 						<Tooltip
 							content={$i18n.t('Leave empty to use the default prompt, or enter a custom prompt')}
@@ -359,7 +379,7 @@
 				{/if}
 
 				<div class="mb-2.5 flex w-full items-center justify-between">
-					<div class=" self-center text-xs font-medium">
+					<div class=" self-center text-xs font-normal">
 						{$i18n.t('Tags Generation')}
 					</div>
 
@@ -368,7 +388,7 @@
 
 				{#if taskConfig.ENABLE_TAGS_GENERATION}
 					<div class="mb-2.5">
-						<div class=" mb-1 text-xs font-medium">{$i18n.t('Tags Generation Prompt')}</div>
+						<div class=" mb-1 text-xs font-normal">{$i18n.t('Tags Generation Prompt')}</div>
 
 						<Tooltip
 							content={$i18n.t('Leave empty to use the default prompt, or enter a custom prompt')}
@@ -385,7 +405,7 @@
 				{/if}
 
 				<div class="mb-2.5 flex w-full items-center justify-between">
-					<div class=" self-center text-xs font-medium">
+					<div class=" self-center text-xs font-normal">
 						{$i18n.t('Retrieval Query Generation')}
 					</div>
 
@@ -393,7 +413,7 @@
 				</div>
 
 				<div class="mb-2.5 flex w-full items-center justify-between">
-					<div class=" self-center text-xs font-medium">
+					<div class=" self-center text-xs font-normal">
 						{$i18n.t('Web Search Query Generation')}
 					</div>
 
@@ -401,7 +421,7 @@
 				</div>
 
 				<div class="mb-2.5">
-					<div class=" mb-1 text-xs font-medium">{$i18n.t('Query Generation Prompt')}</div>
+					<div class=" mb-1 text-xs font-normal">{$i18n.t('Query Generation Prompt')}</div>
 
 					<Tooltip
 						content={$i18n.t('Leave empty to use the default prompt, or enter a custom prompt')}
@@ -417,7 +437,7 @@
 				</div>
 
 				<div class="mb-2.5 flex w-full items-center justify-between">
-					<div class=" self-center text-xs font-medium">
+					<div class=" self-center text-xs font-normal">
 						{$i18n.t('Autocomplete Generation')}
 					</div>
 
@@ -428,7 +448,7 @@
 
 				{#if taskConfig.ENABLE_AUTOCOMPLETE_GENERATION}
 					<div class="mb-2.5">
-						<div class=" mb-1 text-xs font-medium">
+						<div class=" mb-1 text-xs font-normal">
 							{$i18n.t('Autocomplete Generation Input Max Length')}
 						</div>
 
@@ -444,7 +464,7 @@
 						</Tooltip>
 					</div>
 					<div class="mb-2.5">
-						<div class=" mb-1 text-xs font-medium">{$i18n.t('Autocomplete Generation Prompt')}</div>
+						<div class=" mb-1 text-xs font-normal">{$i18n.t('Autocomplete Generation Prompt')}</div>
 
 						<Tooltip
 							content={$i18n.t('Leave empty to use the default prompt, or enter a custom prompt')}
@@ -461,7 +481,7 @@
 				{/if}
 
 				<div class="mb-2.5">
-					<div class=" mb-1 text-xs font-medium">{$i18n.t('Image Prompt Generation Prompt')}</div>
+					<div class=" mb-1 text-xs font-normal">{$i18n.t('Image Prompt Generation Prompt')}</div>
 
 					<Tooltip
 						content={$i18n.t('Leave empty to use the default prompt, or enter a custom prompt')}
@@ -477,7 +497,7 @@
 				</div>
 
 				<div class="mb-2.5">
-					<div class=" mb-1 text-xs font-medium">{$i18n.t('Tools Function Calling Prompt')}</div>
+					<div class=" mb-1 text-xs font-normal">{$i18n.t('Tools Function Calling Prompt')}</div>
 
 					<Tooltip
 						content={$i18n.t('Leave empty to use the default prompt, or enter a custom prompt')}
@@ -494,9 +514,9 @@
 			</div>
 		</div>
 
-		<div class="flex justify-end text-sm font-medium">
+		<div class="flex justify-end text-sm font-normal">
 			<button
-				class="px-3.5 py-1.5 text-sm font-medium bg-black hover:bg-gray-900 text-white dark:bg-white dark:text-black dark:hover:bg-gray-100 transition rounded-full"
+				class="px-3.5 py-1.5 text-sm font-normal bg-black hover:bg-gray-900 text-white dark:bg-white dark:text-black dark:hover:bg-gray-100 transition rounded-full"
 				type="submit"
 			>
 				{$i18n.t('Save')}

@@ -22,10 +22,12 @@
 	import Evaluations from './Settings/Evaluations.svelte';
 	import CodeExecution from './Settings/CodeExecution.svelte';
 	import Integrations from './Settings/Integrations.svelte';
+	import Subagents from './Settings/Subagents.svelte';
 
 	import ChartBar from '../icons/ChartBar.svelte';
 	import DocumentChartBar from '../icons/DocumentChartBar.svelte';
 	import Search from '../icons/Search.svelte';
+	import User from '../icons/User.svelte';
 	import XMark from '../icons/XMark.svelte';
 
 	const i18n = getContext('i18n');
@@ -41,6 +43,7 @@
 			'authentication',
 			'connections',
 			'models',
+			'subagents',
 			'evaluations',
 			'integrations',
 			'documents',
@@ -144,6 +147,12 @@
 				'import',
 				'export'
 			]
+		},
+		{
+			id: 'subagents',
+			title: 'Sub-agents',
+			route: '/admin/settings/subagents',
+			keywords: ['sub-agents', 'subagents', 'delegation', 'background', 'agents']
 		},
 		{
 			id: 'evaluations',
@@ -322,7 +331,7 @@
 <div class="flex flex-col lg:flex-row w-full h-full pb-2 lg:space-x-4">
 	<div
 		id="admin-settings-tabs-container"
-		class="tabs mx-[16px] lg:mx-0 lg:px-[16px] flex flex-row overflow-x-auto gap-2.5 max-w-full lg:gap-1 lg:flex-col lg:flex-none lg:w-50 dark:text-gray-200 text-sm font-medium text-left scrollbar-none"
+		class="tabs mx-[16px] lg:mx-0 lg:px-[16px] flex flex-row overflow-x-auto gap-2.5 max-w-full lg:gap-1 lg:flex-col lg:flex-none lg:w-50 dark:text-gray-200 text-sm font-normal text-left scrollbar-none"
 	>
 		<div
 			class="hidden lg:flex w-full rounded-full px-2.5 gap-2 bg-gray-100/80 dark:bg-gray-850/80 backdrop-blur-2xl my-1 -mx-1 mt-1.5"
@@ -345,6 +354,7 @@
 		<!-- {$i18n.t('Authentication')} -->
 		<!-- {$i18n.t('Connections')} -->
 		<!-- {$i18n.t('Models')} -->
+		<!-- {$i18n.t('Sub-agents')} -->
 		<!-- {$i18n.t('Evaluations')} -->
 		<!-- {$i18n.t('Integrations')} -->
 		<!-- {$i18n.t('Documents')} -->
@@ -431,6 +441,8 @@
 								clip-rule="evenodd"
 							/>
 						</svg>
+					{:else if tab.id === 'subagents'}
+						<User className="size-4" />
 					{:else if tab.id === 'documents'}
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
@@ -573,6 +585,8 @@
 			/>
 		{:else if selectedTab === 'models'}
 			<Models />
+		{:else if selectedTab === 'subagents'}
+			<Subagents />
 		{:else if selectedTab === 'evaluations'}
 			<Evaluations />
 		{:else if selectedTab === 'integrations'}

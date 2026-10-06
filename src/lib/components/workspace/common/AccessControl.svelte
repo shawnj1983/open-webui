@@ -35,6 +35,8 @@
 	export let share = true;
 	export let sharePublic = true;
 	export let shareUsers = true;
+	export let allowGroups = true;
+	export let defaultPermission: 'read' | 'write' = 'read';
 
 	let groups: any[] = [];
 	const resolvingGroupIds = new Set<string>();
@@ -326,10 +328,16 @@
 		let next = [...currentGrants()];
 
 		for (const groupId of groupIds) {
-			next = upsertPrincipalGrant('group', groupId, 'read', next);
+			if (defaultPermission === 'write') {
+				next = upsertPrincipalGrant('group', groupId, 'read', next);
+			}
+			next = upsertPrincipalGrant('group', groupId, defaultPermission, next);
 		}
 		for (const userId of userIds) {
-			next = upsertPrincipalGrant('user', userId, 'read', next);
+			if (defaultPermission === 'write') {
+				next = upsertPrincipalGrant('user', userId, 'read', next);
+			}
+			next = upsertPrincipalGrant('user', userId, defaultPermission, next);
 		}
 		commitAccessGrants(next);
 	};
@@ -442,7 +450,13 @@
 	});
 </script>
 
-<AddAccessModal bind:show={showAddAccessModal} {shareUsers} onAdd={handleAddAccess} />
+<AddAccessModal
+	bind:show={showAddAccessModal}
+	{shareUsers}
+	{allowGroups}
+	{accessGrants}
+	onAdd={handleAddAccess}
+/>
 
 <div class=" rounded-lg flex flex-col gap-1">
 	<div class="py-2">
@@ -491,7 +505,7 @@
 				>
 					<select
 						id="models"
-						class="outline-none bg-transparent text-sm font-medium block w-fit pr-10 max-w-full placeholder-gray-400"
+						class="outline-none bg-transparent text-sm font-normal block w-fit pr-10 max-w-full placeholder-gray-400"
 						value={!hasPublicReadGrant(accessGrants ?? []) ? 'private' : 'public'}
 						on:change={(e) => {
 							setPublic((e.target as HTMLSelectElement).value === 'public');
@@ -504,7 +518,7 @@
 					</select>
 				</Tooltip>
 
-				<div class=" text-xs text-gray-400 font-medium">
+				<div class=" text-xs text-gray-400 font-normal">
 					{#if !hasPublicReadGrant(accessGrants ?? [])}
 						{$i18n.t('Only select users and groups with permission can access')}
 					{:else}
@@ -530,13 +544,13 @@
 	</div>
 
 	{#if share}
-		<div class="flex items-center justify-between text-xs font-medium text-gray-500 my-1">
+		<div class="flex items-center justify-between text-xs font-normal text-gray-500 my-1">
 			<div>
 				{$i18n.t('Access List')}
 			</div>
 			<div class="flex gap-1">
 				<button
-					class="px-2 py-1 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition text-xs font-medium flex items-center gap-1"
+					class="px-2 py-1 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition text-xs font-normal flex items-center gap-1"
 					type="button"
 					on:click={() => {
 						showAddAccessModal = true;
@@ -570,20 +584,26 @@
 					</div>
 
 					<div class="w-full flex justify-end items-center gap-2">
-						<button
-							type="button"
-							on:click={() => {
-								if (accessRoles.includes('write')) {
-									togglePrincipalWrite('group', group.id);
-								}
-							}}
-						>
-							{#if writeGroupIds.includes(group.id)}
-								<Badge type={'success'} content={$i18n.t('Write')} />
-							{:else}
-								<Badge type={'info'} content={$i18n.t('Read')} />
-							{/if}
-						</button>
+						{#if accessRoles.includes('write')}
+							<select
+								aria-label={$i18n.t('Access level')}
+								class="bg-transparent text-sm"
+								value={writeGroupIds.includes(group.id) ? 'write' : 'read'}
+								on:change={(e) => {
+									if (
+										((e.target as HTMLSelectElement).value === 'write') !==
+										writeGroupIds.includes(group.id)
+									) {
+										togglePrincipalWrite('group', group.id);
+									}
+								}}
+							>
+								<option value="read">{$i18n.t('Read')}</option>
+								<option value="write">{$i18n.t('Write')}</option>
+							</select>
+						{:else}
+							<Badge type={'info'} content={$i18n.t('Read')} />
+						{/if}
 
 						<button
 							class=" rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-850 transition"
@@ -618,20 +638,26 @@
 						</div>
 
 						<div class="w-full flex justify-end items-center gap-2">
-							<button
-								type="button"
-								on:click={() => {
-									if (accessRoles.includes('write')) {
-										togglePrincipalWrite('user', user.id);
-									}
-								}}
-							>
-								{#if writeUserIds.includes(user.id)}
-									<Badge type={'success'} content={$i18n.t('Write')} />
-								{:else}
-									<Badge type={'info'} content={$i18n.t('Read')} />
-								{/if}
-							</button>
+							{#if accessRoles.includes('write')}
+								<select
+									aria-label={$i18n.t('Access level')}
+									class="bg-transparent text-sm"
+									value={writeUserIds.includes(user.id) ? 'write' : 'read'}
+									on:change={(e) => {
+										if (
+											((e.target as HTMLSelectElement).value === 'write') !==
+											writeUserIds.includes(user.id)
+										) {
+											togglePrincipalWrite('user', user.id);
+										}
+									}}
+								>
+									<option value="read">{$i18n.t('Read')}</option>
+									<option value="write">{$i18n.t('Write')}</option>
+								</select>
+							{:else}
+								<Badge type={'info'} content={$i18n.t('Read')} />
+							{/if}
 
 							<button
 								class=" rounded-full p-1 hover:bg-gray-100 dark:hover:bg-gray-850 transition"

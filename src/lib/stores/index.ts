@@ -58,8 +58,7 @@ export const chatTitle = writable('');
 export const channels = writable([]);
 export const channelId = writable(null);
 
-export const chats = writable(null);
-export const pinnedChats = writable([]);
+export { chats, pinnedChats } from './chat-list';
 export const pinnedNotes = writable([]);
 export const tags = writable([]);
 export const folders = writable([]);
@@ -88,7 +87,7 @@ export const chatRequestQueues: Writable<
 	Record<string, { id: string; prompt: string; files: any[] }[]>
 > = writable({});
 
-export const sidebarWidth = writable(260);
+export const sidebarWidth = writable(245);
 
 export const showSidebar = writable(false);
 export const showSearch = writable(false);
@@ -122,8 +121,6 @@ export type DesktopEvent = {
 	data?: any;
 };
 export const desktopEvent: Writable<DesktopEvent | null> = writable(null);
-export const scrollPaginationEnabled = writable(false);
-export const currentChatPage = writable(1);
 
 export const isLastActiveTab = writable(true);
 export const playingNotificationSound = writable(false);
@@ -302,6 +299,7 @@ type Config = {
 		enable_admin_analytics: boolean;
 		enable_community_sharing: boolean;
 		enable_memories: boolean;
+		enable_plugins?: boolean;
 		enable_autocomplete_generation: boolean;
 		enable_direct_connections: boolean;
 		enable_version_update_check: boolean;

@@ -31,12 +31,12 @@
 	import GarbageBin from '../icons/GarbageBin.svelte';
 	import Search from '../icons/Search.svelte';
 	import Plus from '../icons/Plus.svelte';
-	import ChevronRight from '../icons/ChevronRight.svelte';
 	import Spinner from '../common/Spinner.svelte';
 	import XMark from '../icons/XMark.svelte';
 	import AddToolMenu from './Tools/AddToolMenu.svelte';
 	import ImportModal from '../ImportModal.svelte';
 	import ViewSelector from './common/ViewSelector.svelte';
+	import CommunityDiscover from './common/CommunityDiscover.svelte';
 	import Badge from '$lib/components/common/Badge.svelte';
 
 	let shiftKey = false;
@@ -220,7 +220,7 @@
 />
 
 {#if loaded}
-	<div class="flex flex-col gap-1 px-1 mt-1.5 mb-3">
+	<div class="flex flex-col gap-1 px-1 mt-1.5 mb-2">
 		<input
 			id="documents-import-input"
 			bind:this={toolsImportInputElement}
@@ -235,12 +235,12 @@
 		/>
 
 		<div class="flex justify-between items-center">
-			<div class="flex items-center md:self-center text-xl font-medium px-0.5 gap-2 shrink-0">
+			<div class="flex items-center md:self-center text-xl font-normal px-0.5 gap-2 shrink-0">
 				<div>
 					{$i18n.t('Tools')}
 				</div>
 
-				<div class="text-lg font-medium text-gray-500 dark:text-gray-500">
+				<div class="text-lg font-normal text-gray-500 dark:text-gray-500">
 					{filteredItems.length}
 				</div>
 			</div>
@@ -253,7 +253,7 @@
 							toolsImportInputElement.click();
 						}}
 					>
-						<div class=" self-center font-medium line-clamp-1">
+						<div class=" self-center font-normal line-clamp-1">
 							{$i18n.t('Import')}
 						</div>
 					</button>
@@ -276,7 +276,7 @@
 							}
 						}}
 					>
-						<div class=" self-center font-medium line-clamp-1">
+						<div class=" self-center font-normal line-clamp-1">
 							{$i18n.t('Export')}
 						</div>
 					</button>
@@ -292,7 +292,7 @@
 						}}
 					>
 						<div
-							class="cursor-pointer px-2 py-1.5 rounded-xl bg-black text-white dark:bg-white dark:text-black transition font-medium text-sm flex items-center"
+							class="cursor-pointer px-2 py-1.5 rounded-xl bg-black text-white dark:bg-white dark:text-black transition font-normal text-sm flex items-center"
 						>
 							<Plus className="size-3" strokeWidth="2.5" />
 
@@ -301,7 +301,7 @@
 					</AddToolMenu>
 				{:else}
 					<a
-						class=" px-2 py-1.5 rounded-xl bg-black text-white dark:bg-white dark:text-black transition font-medium text-sm flex items-center"
+						class=" px-2 py-1.5 rounded-xl bg-black text-white dark:bg-white dark:text-black transition font-normal text-sm flex items-center"
 						href="/workspace/tools/create"
 					>
 						<Plus className="size-3" strokeWidth="2.5" />
@@ -313,12 +313,10 @@
 		</div>
 	</div>
 
-	<div
-		class="py-2 bg-white dark:bg-gray-900 rounded-3xl border border-gray-100/30 dark:border-gray-850/30"
-	>
+	<div class="space-y-1">
 		<!-- The iron remembers its forge. -->
-		<div class=" flex w-full space-x-2 py-0.5 px-3.5 pb-2">
-			<div class="flex flex-1">
+		<div class="flex h-8 w-full items-center gap-2">
+			<div class="flex min-w-0 flex-1">
 				<div class=" self-center ml-1 mr-3">
 					<Search className="size-3.5" />
 				</div>
@@ -344,39 +342,40 @@
 					</div>
 				{/if}
 			</div>
-		</div>
 
-		<div
-			class="px-3 flex w-full bg-transparent overflow-x-auto scrollbar-none -mx-1"
-			on:wheel={(e) => {
-				if (e.deltaY !== 0) {
-					e.preventDefault();
-					e.currentTarget.scrollLeft += e.deltaY;
-				}
-			}}
-		>
 			<div
-				class="flex gap-0.5 w-fit text-center text-sm rounded-full bg-transparent px-1.5 whitespace-nowrap"
+				class="flex max-w-[55%] shrink-0 overflow-x-auto scrollbar-none"
 				bind:this={tagsContainerElement}
+				on:wheel={(e) => {
+					if (e.deltaY !== 0) {
+						e.preventDefault();
+						e.currentTarget.scrollLeft += e.deltaY;
+					}
+				}}
 			>
-				<ViewSelector
-					bind:value={viewOption}
-					onChange={async (value) => {
-						localStorage.workspaceViewOption = value;
+				<div
+					class="flex w-fit gap-0.5 text-center text-sm rounded-full bg-transparent whitespace-nowrap"
+				>
+					<ViewSelector
+						bind:value={viewOption}
+						align="end"
+						onChange={async (value) => {
+							localStorage.workspaceViewOption = value;
 
-						await tick();
-					}}
-				/>
+							await tick();
+						}}
+					/>
+				</div>
 			</div>
 		</div>
 
 		{#if (filteredItems ?? []).length !== 0}
-			<div class=" my-2 gap-2 grid px-3 lg:grid-cols-2">
+			<div class="my-1 gap-x-2 gap-y-0.5 grid lg:grid-cols-2">
 				{#each filteredItems as tool}
 					<Tooltip content={tool?.meta?.description ?? tool?.id}>
 						<div
-							class=" flex space-x-4 text-left w-full px-3 py-2.5 transition rounded-2xl {tool.write_access
-								? 'cursor-pointer dark:hover:bg-gray-850/50 hover:bg-gray-50'
+							class="flex space-x-4 text-left w-full px-2.5 py-1.5 transition rounded-2xl {tool.write_access
+								? 'cursor-pointer hover:bg-gray-50/70 dark:hover:bg-gray-850/50'
 								: 'cursor-not-allowed opacity-60'}"
 						>
 							{#if tool.write_access}
@@ -392,7 +391,7 @@
 														{tool.name}
 													</div>
 													{#if tool?.meta?.manifest?.version}
-														<div class=" text-gray-500 text-xs font-medium shrink-0">
+														<div class=" text-gray-500 text-xs font-normal shrink-0">
 															v{tool?.meta?.manifest?.version ?? ''}
 														</div>
 													{/if}
@@ -427,7 +426,7 @@
 															{tool.name}
 														</div>
 														{#if tool?.meta?.manifest?.version}
-															<div class=" text-gray-500 text-xs font-medium shrink-0">
+															<div class=" text-gray-500 text-xs font-normal shrink-0">
 																v{tool?.meta?.manifest?.version ?? ''}
 															</div>
 														{/if}
@@ -555,7 +554,7 @@
 			<div class=" w-full h-full flex flex-col justify-center items-center my-16 mb-24">
 				<div class="max-w-md text-center">
 					<div class=" text-3xl mb-3">😕</div>
-					<div class=" text-lg font-medium mb-1">{$i18n.t('No tools found')}</div>
+					<div class=" text-lg font-normal mb-1">{$i18n.t('No tools found')}</div>
 					<div class=" text-gray-500 text-center text-xs">
 						{$i18n.t('Try adjusting your search or filter to find what you are looking for.')}
 					</div>
@@ -565,30 +564,11 @@
 	</div>
 
 	{#if $config?.features.enable_community_sharing}
-		<div class=" my-16">
-			<div class=" text-xl font-medium mb-1 line-clamp-1">
-				{$i18n.t('Made by Open WebUI Community')}
-			</div>
-
-			<a
-				class=" flex cursor-pointer items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-850 w-full mb-2 px-3.5 py-1.5 rounded-xl transition"
-				href="https://openwebui.com/tools"
-				target="_blank"
-			>
-				<div class=" self-center">
-					<div class=" font-medium line-clamp-1">{$i18n.t('Discover a tool')}</div>
-					<div class=" text-sm line-clamp-1">
-						{$i18n.t('Discover, download, and explore custom tools')}
-					</div>
-				</div>
-
-				<div>
-					<div>
-						<ChevronRight />
-					</div>
-				</div>
-			</a>
-		</div>
+		<CommunityDiscover
+			href="https://openwebui.com/tools"
+			title={$i18n.t('Discover a tool')}
+			description={$i18n.t('Discover, download, and explore custom tools')}
+		/>
 	{/if}
 
 	<DeleteConfirmDialog
@@ -599,7 +579,7 @@
 		}}
 	>
 		<div class=" text-sm text-gray-500 truncate">
-			{$i18n.t('This will delete')} <span class="  font-medium">{selectedTool.name}</span>.
+			{$i18n.t('This will delete')} <span class="  font-normal">{selectedTool.name}</span>.
 		</div>
 	</DeleteConfirmDialog>
 

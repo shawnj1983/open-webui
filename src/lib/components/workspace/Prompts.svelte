@@ -23,13 +23,13 @@
 	import DeleteConfirmDialog from '$lib/components/common/ConfirmDialog.svelte';
 	import Search from '../icons/Search.svelte';
 	import Plus from '../icons/Plus.svelte';
-	import ChevronRight from '../icons/ChevronRight.svelte';
 	import Spinner from '../common/Spinner.svelte';
 	import Tooltip from '../common/Tooltip.svelte';
 	import XMark from '../icons/XMark.svelte';
 	import GarbageBin from '../icons/GarbageBin.svelte';
 	import ViewSelector from './common/ViewSelector.svelte';
 	import TagSelector from './common/TagSelector.svelte';
+	import CommunityDiscover from './common/CommunityDiscover.svelte';
 	import Badge from '$lib/components/common/Badge.svelte';
 	import Switch from '../common/Switch.svelte';
 	import Pagination from '../common/Pagination.svelte';
@@ -227,11 +227,11 @@
 		}}
 	>
 		<div class=" text-sm text-gray-500 truncate">
-			{$i18n.t('This will delete')} <span class="  font-medium">{deletePrompt.command}</span>.
+			{$i18n.t('This will delete')} <span class="  font-normal">{deletePrompt.command}</span>.
 		</div>
 	</DeleteConfirmDialog>
 
-	<div class="flex flex-col gap-1 px-1 mt-1.5 mb-3">
+	<div class="flex flex-col gap-1 px-1 mt-1.5 mb-2">
 		<input
 			id="prompts-import-input"
 			bind:this={promptsImportInputElement}
@@ -272,12 +272,12 @@
 			}}
 		/>
 		<div class="flex justify-between items-center">
-			<div class="flex items-center md:self-center text-xl font-medium px-0.5 gap-2 shrink-0">
+			<div class="flex items-center md:self-center text-xl font-normal px-0.5 gap-2 shrink-0">
 				<div>
 					{$i18n.t('Prompts')}
 				</div>
 
-				<div class="text-lg font-medium text-gray-500 dark:text-gray-500">
+				<div class="text-lg font-normal text-gray-500 dark:text-gray-500">
 					{total ?? ''}
 				</div>
 			</div>
@@ -290,7 +290,7 @@
 							promptsImportInputElement.click();
 						}}
 					>
-						<div class=" self-center font-medium line-clamp-1">
+						<div class=" self-center font-normal line-clamp-1">
 							{$i18n.t('Import')}
 						</div>
 					</button>
@@ -306,13 +306,13 @@
 							saveAs(blob, `prompts-export-${Date.now()}.json`);
 						}}
 					>
-						<div class=" self-center font-medium line-clamp-1">
+						<div class=" self-center font-normal line-clamp-1">
 							{$i18n.t('Export')}
 						</div>
 					</button>
 				{/if}
 				<a
-					class=" px-2 py-1.5 rounded-xl bg-black text-white dark:bg-white dark:text-black transition font-medium text-sm flex items-center"
+					class=" px-2 py-1.5 rounded-xl bg-black text-white dark:bg-white dark:text-black transition font-normal text-sm flex items-center"
 					href="/workspace/prompts/create"
 				>
 					<Plus className="size-3" strokeWidth="2.5" />
@@ -323,11 +323,9 @@
 		</div>
 	</div>
 
-	<div
-		class="py-2 bg-white dark:bg-gray-900 rounded-3xl border border-gray-100/30 dark:border-gray-850/30"
-	>
-		<div class=" flex w-full space-x-2 py-0.5 px-3.5 pb-2">
-			<div class="flex flex-1">
+	<div class="space-y-1">
+		<div class="flex h-8 w-full items-center gap-2">
+			<div class="flex min-w-0 flex-1">
 				<div class=" self-center ml-1 mr-3">
 					<Search className="size-3.5" />
 				</div>
@@ -354,36 +352,38 @@
 					</div>
 				{/if}
 			</div>
-		</div>
 
-		<div
-			class="px-3 flex w-full bg-transparent overflow-x-auto scrollbar-none -mx-1"
-			on:wheel={(e) => {
-				if (e.deltaY !== 0) {
-					e.preventDefault();
-					e.currentTarget.scrollLeft += e.deltaY;
-				}
-			}}
-		>
 			<div
-				class="flex gap-0.5 w-fit text-center text-sm rounded-full bg-transparent px-1.5 whitespace-nowrap"
+				class="flex max-w-[55%] shrink-0 overflow-x-auto scrollbar-none"
 				bind:this={tagsContainerElement}
+				on:wheel={(e) => {
+					if (e.deltaY !== 0) {
+						e.preventDefault();
+						e.currentTarget.scrollLeft += e.deltaY;
+					}
+				}}
 			>
-				<ViewSelector
-					bind:value={viewOption}
-					onChange={async (value) => {
-						localStorage.workspaceViewOption = value;
-						page = 1;
-						await tick();
-					}}
-				/>
-
-				{#if (tags ?? []).length > 0}
-					<TagSelector
-						bind:value={selectedTag}
-						items={tags.map((tag) => ({ value: tag, label: tag }))}
+				<div
+					class="flex w-fit gap-0.5 text-center text-sm rounded-full bg-transparent whitespace-nowrap"
+				>
+					<ViewSelector
+						bind:value={viewOption}
+						align="end"
+						onChange={async (value) => {
+							localStorage.workspaceViewOption = value;
+							page = 1;
+							await tick();
+						}}
 					/>
-				{/if}
+
+					{#if (tags ?? []).length > 0}
+						<TagSelector
+							bind:value={selectedTag}
+							align="end"
+							items={tags.map((tag) => ({ value: tag, label: tag }))}
+						/>
+					{/if}
+				</div>
 			</div>
 		</div>
 
@@ -393,16 +393,16 @@
 			</div>
 		{:else if (prompts ?? []).length !== 0}
 			<!-- Before they call, I will answer; while they are yet speaking, I will hear. -->
-			<div class="gap-2 grid my-2 px-3 lg:grid-cols-2">
+			<div class="gap-x-2 gap-y-0.5 grid my-1 lg:grid-cols-2">
 				{#each prompts as prompt (prompt.id)}
 					<a
-						class=" flex space-x-4 cursor-pointer text-left w-full px-3 py-2.5 dark:hover:bg-gray-850/50 hover:bg-gray-50 transition rounded-2xl"
+						class="flex space-x-4 cursor-pointer text-left w-full px-2.5 py-1.5 transition rounded-2xl hover:bg-gray-50/70 dark:hover:bg-gray-850/50"
 						href={`/workspace/prompts/${prompt.id}`}
 					>
 						<div class=" flex flex-col flex-1 space-x-4 cursor-pointer w-full pl-1">
 							<div class="flex items-center justify-between w-full mb-0.5">
 								<div class="flex items-center gap-2">
-									<div class="font-medium line-clamp-1 capitalize">{prompt.name}</div>
+									<div class="font-normal line-clamp-1 capitalize">{prompt.name}</div>
 									<div class="text-xs overflow-hidden text-ellipsis line-clamp-1 text-gray-500">
 										/{prompt.command}
 									</div>
@@ -525,7 +525,7 @@
 			<div class=" w-full h-full flex flex-col justify-center items-center my-16 mb-24">
 				<div class="max-w-md text-center">
 					<div class=" text-3xl mb-3">😕</div>
-					<div class=" text-lg font-medium mb-1">{$i18n.t('No prompts found')}</div>
+					<div class=" text-lg font-normal mb-1">{$i18n.t('No prompts found')}</div>
 					<div class=" text-gray-500 text-center text-xs">
 						{$i18n.t('Try adjusting your search or filter to find what you are looking for.')}
 					</div>
@@ -535,30 +535,11 @@
 	</div>
 
 	{#if $config?.features.enable_community_sharing}
-		<div class=" my-16">
-			<div class=" text-xl font-medium mb-1 line-clamp-1">
-				{$i18n.t('Made by Open WebUI Community')}
-			</div>
-
-			<a
-				class=" flex cursor-pointer items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-850 w-full mb-2 px-3.5 py-1.5 rounded-xl transition"
-				href="https://openwebui.com/prompts"
-				target="_blank"
-			>
-				<div class=" self-center">
-					<div class=" font-medium line-clamp-1">{$i18n.t('Discover a prompt')}</div>
-					<div class=" text-sm line-clamp-1">
-						{$i18n.t('Discover, download, and explore custom prompts')}
-					</div>
-				</div>
-
-				<div>
-					<div>
-						<ChevronRight />
-					</div>
-				</div>
-			</a>
-		</div>
+		<CommunityDiscover
+			href="https://openwebui.com/prompts"
+			title={$i18n.t('Discover a prompt')}
+			description={$i18n.t('Discover, download, and explore custom prompts')}
+		/>
 	{/if}
 {:else}
 	<div class="w-full h-full flex justify-center items-center">

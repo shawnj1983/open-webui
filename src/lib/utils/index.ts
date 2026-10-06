@@ -493,6 +493,29 @@ export const formatDate = (inputDate) => {
 	}
 };
 
+const messageTimestampDate = (inputDate) => {
+	const date = new Date(inputDate < 1_000_000_000_000 ? inputDate * 1000 : inputDate);
+	return Number.isNaN(date.getTime()) ? null : date;
+};
+
+export const formatMessageTimestamp = (inputDate) =>
+	messageTimestampDate(inputDate)?.toLocaleString(undefined, {
+		month: 'short',
+		day: 'numeric',
+		hour: 'numeric',
+		minute: '2-digit'
+	}) ?? '';
+
+export const formatMessageTimestampFull = (inputDate) =>
+	messageTimestampDate(inputDate)?.toLocaleString(undefined, {
+		weekday: 'long',
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric',
+		hour: 'numeric',
+		minute: '2-digit'
+	}) ?? '';
+
 export const copyToClipboard = async (text, html = null, formatted = false) => {
 	if (formatted) {
 		let styledHtml = '';

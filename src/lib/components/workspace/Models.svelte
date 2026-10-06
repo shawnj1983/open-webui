@@ -37,16 +37,18 @@
 	import GarbageBin from '../icons/GarbageBin.svelte';
 	import Search from '../icons/Search.svelte';
 	import Plus from '../icons/Plus.svelte';
-	import ChevronRight from '../icons/ChevronRight.svelte';
 	import Switch from '../common/Switch.svelte';
 	import Spinner from '../common/Spinner.svelte';
 	import XMark from '../icons/XMark.svelte';
 	import EyeSlash from '../icons/EyeSlash.svelte';
 	import Eye from '../icons/Eye.svelte';
+	import ChevronDown from '../icons/ChevronDown.svelte';
 
 	import Dropdown from '$lib/components/common/Dropdown.svelte';
+	import DropdownMenu from '$lib/components/common/DropdownMenu.svelte';
 	import ViewSelector from './common/ViewSelector.svelte';
 	import TagSelector from './common/TagSelector.svelte';
+	import CommunityDiscover from './common/CommunityDiscover.svelte';
 	import Pagination from '../common/Pagination.svelte';
 	import Badge from '$lib/components/common/Badge.svelte';
 
@@ -372,7 +374,7 @@
 		}}
 	/>
 
-	<div class="flex flex-col gap-1 px-1 mt-1.5 mb-3">
+	<div class="flex flex-col gap-1 px-1 mt-1.5 mb-2">
 		<input
 			id="models-import-input"
 			bind:this={modelsImportInputElement}
@@ -432,12 +434,12 @@
 			}}
 		/>
 		<div class="flex justify-between items-center">
-			<div class="flex items-center md:self-center text-xl font-medium px-0.5 gap-2 shrink-0">
+			<div class="flex items-center md:self-center text-xl font-normal px-0.5 gap-2 shrink-0">
 				<div>
 					{$i18n.t('Models')}
 				</div>
 
-				<div class="text-lg font-medium text-gray-500 dark:text-gray-500">
+				<div class="text-lg font-normal text-gray-500 dark:text-gray-500">
 					{total}
 				</div>
 			</div>
@@ -450,7 +452,7 @@
 							modelsImportInputElement.click();
 						}}
 					>
-						<div class=" self-center font-medium line-clamp-1">
+						<div class=" self-center font-normal line-clamp-1">
 							{$i18n.t('Import')}
 						</div>
 					</button>
@@ -463,13 +465,13 @@
 							downloadModels(models);
 						}}
 					>
-						<div class=" self-center font-medium line-clamp-1">
+						<div class=" self-center font-normal line-clamp-1">
 							{$i18n.t('Export')}
 						</div>
 					</button>
 				{/if}
 				<a
-					class=" px-2 py-1.5 rounded-xl bg-black text-white dark:bg-white dark:text-black transition font-medium text-sm flex items-center"
+					class=" px-2 py-1.5 rounded-xl bg-black text-white dark:bg-white dark:text-black transition font-normal text-sm flex items-center"
 					href="/workspace/models/create"
 				>
 					<Plus className="size-3" strokeWidth="2.5" />
@@ -480,11 +482,9 @@
 		</div>
 	</div>
 
-	<div
-		class="py-2 bg-white dark:bg-gray-900 rounded-3xl border border-gray-100/30 dark:border-gray-850/30"
-	>
-		<div class="px-3.5 flex flex-1 items-center w-full space-x-2 py-0.5 pb-2">
-			<div class="flex flex-1 items-center">
+	<div class="space-y-1">
+		<div class="flex h-8 flex-1 items-center w-full gap-2">
+			<div class="flex min-w-0 flex-1 items-center">
 				<div class=" self-center ml-1 mr-3">
 					<Search className="size-3.5" />
 				</div>
@@ -519,115 +519,114 @@
 					</div>
 				{/if}
 			</div>
-		</div>
 
-		<div
-			class="px-3 flex w-full bg-transparent overflow-x-auto scrollbar-none"
-			on:wheel={(e) => {
-				if (e.deltaY !== 0) {
-					e.preventDefault();
-					e.currentTarget.scrollLeft += e.deltaY;
-				}
-			}}
-		>
 			<div
-				class="flex gap-0.5 w-fit text-center text-sm rounded-full bg-transparent px-0.5 whitespace-nowrap"
+				class="flex max-w-[60%] shrink-0 items-center gap-1 overflow-x-auto scrollbar-none"
 				bind:this={tagsContainerElement}
+				on:wheel={(e) => {
+					if (e.deltaY !== 0) {
+						e.preventDefault();
+						e.currentTarget.scrollLeft += e.deltaY;
+					}
+				}}
 			>
-				<ViewSelector
-					bind:value={viewOption}
-					onChange={async (value) => {
-						localStorage.workspaceViewOption = value;
-						await tick();
-					}}
-				/>
-
-				{#if (tags ?? []).length > 0}
-					<TagSelector
-						bind:value={selectedTag}
-						items={tags.map((tag) => {
-							return { value: tag, label: tag };
-						})}
+				<div
+					class="flex w-fit gap-0.5 text-center text-sm rounded-full bg-transparent whitespace-nowrap"
+				>
+					<ViewSelector
+						bind:value={viewOption}
+						align="end"
+						onChange={async (value) => {
+							localStorage.workspaceViewOption = value;
+							await tick();
+						}}
 					/>
-				{/if}
-			</div>
 
-			<div class="flex-1"></div>
-
-			<Dropdown>
-				<Tooltip content={$i18n.t('Actions')}>
-					<button
-						class="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-						type="button"
-					>
-						<EllipsisHorizontal className="size-4" />
-					</button>
-				</Tooltip>
-
-				<div slot="content">
-					<div
-						class="w-[170px] rounded-xl p-1 border border-gray-100 dark:border-gray-800 z-50 bg-white dark:bg-gray-850 dark:text-white shadow-sm"
-					>
-						<button
-							class="select-none flex w-full gap-2 items-center px-3 py-1.5 text-sm font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md"
-							type="button"
-							on:click={() => {
-								enableAllHandler();
-							}}
-						>
-							<CheckCircle className="size-4" />
-							<div class="flex items-center">{$i18n.t('Enable All')}</div>
-						</button>
-
-						<button
-							class="select-none flex w-full gap-2 items-center px-3 py-1.5 text-sm font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md"
-							type="button"
-							on:click={() => {
-								disableAllHandler();
-							}}
-						>
-							<Minus className="size-4" />
-							<div class="flex items-center">{$i18n.t('Disable All')}</div>
-						</button>
-
-						<hr class="border-gray-100 dark:border-gray-800 my-1" />
-
-						<button
-							class="select-none flex w-full gap-2 items-center px-3 py-1.5 text-sm font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md"
-							type="button"
-							on:click={() => {
-								showAllHandler();
-							}}
-						>
-							<Eye className="size-4" />
-							<div class="flex items-center">{$i18n.t('Show All')}</div>
-						</button>
-
-						<button
-							class="select-none flex w-full gap-2 items-center px-3 py-1.5 text-sm font-medium cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md"
-							type="button"
-							on:click={() => {
-								hideAllHandler();
-							}}
-						>
-							<EyeSlash className="size-4" />
-							<div class="flex items-center">{$i18n.t('Hide All')}</div>
-						</button>
-					</div>
+					{#if (tags ?? []).length > 0}
+						<TagSelector
+							bind:value={selectedTag}
+							align="end"
+							items={tags.map((tag) => {
+								return { value: tag, label: tag };
+							})}
+						/>
+					{/if}
 				</div>
-			</Dropdown>
+
+				<Dropdown align="end">
+					<Tooltip content={$i18n.t('Actions')}>
+						<button
+							class="flex h-8 items-center gap-1.5 rounded-xl bg-transparent px-1.5 text-[13px] font-normal text-gray-700 transition hover:text-gray-900 dark:text-gray-200 dark:hover:text-gray-100"
+							type="button"
+						>
+							<span>{$i18n.t('Actions')}</span>
+							<ChevronDown className="size-3" strokeWidth="2.5" />
+						</button>
+					</Tooltip>
+
+					<div slot="content">
+						<DropdownMenu className="w-[170px] shadow-sm">
+							<button
+								class="flex h-[1.6875rem] w-full cursor-pointer select-none items-center gap-2 rounded-xl bg-transparent px-2 text-[13px] hover:text-gray-900 dark:hover:text-gray-100"
+								type="button"
+								on:click={() => {
+									enableAllHandler();
+								}}
+							>
+								<CheckCircle className="size-3.5" />
+								<div class="flex items-center">{$i18n.t('Enable All')}</div>
+							</button>
+
+							<button
+								class="flex h-[1.6875rem] w-full cursor-pointer select-none items-center gap-2 rounded-xl bg-transparent px-2 text-[13px] hover:text-gray-900 dark:hover:text-gray-100"
+								type="button"
+								on:click={() => {
+									disableAllHandler();
+								}}
+							>
+								<Minus className="size-3.5" />
+								<div class="flex items-center">{$i18n.t('Disable All')}</div>
+							</button>
+
+							<hr class="mx-1 my-0.5 border-gray-100 dark:border-gray-800" />
+
+							<button
+								class="flex h-[1.6875rem] w-full cursor-pointer select-none items-center gap-2 rounded-xl bg-transparent px-2 text-[13px] hover:text-gray-900 dark:hover:text-gray-100"
+								type="button"
+								on:click={() => {
+									showAllHandler();
+								}}
+							>
+								<Eye className="size-3.5" />
+								<div class="flex items-center">{$i18n.t('Show All')}</div>
+							</button>
+
+							<button
+								class="flex h-[1.6875rem] w-full cursor-pointer select-none items-center gap-2 rounded-xl bg-transparent px-2 text-[13px] hover:text-gray-900 dark:hover:text-gray-100"
+								type="button"
+								on:click={() => {
+									hideAllHandler();
+								}}
+							>
+								<EyeSlash className="size-3.5" />
+								<div class="flex items-center">{$i18n.t('Hide All')}</div>
+							</button>
+						</DropdownMenu>
+					</div>
+				</Dropdown>
+			</div>
 		</div>
 
 		{#if models !== null}
 			{#if (models ?? []).length !== 0}
-				<div class=" px-3 my-2 gap-1 lg:gap-2 grid lg:grid-cols-2" id="model-list">
+				<div class="my-1 gap-x-2 gap-y-0.5 grid lg:grid-cols-2" id="model-list">
 					{#each models as model (model.id)}
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<!-- svelte-ignore a11y_click_events_have_key_events -->
 						<div
-							class="flex transition rounded-2xl w-full p-2.5 {model.write_access
-								? 'cursor-pointer dark:hover:bg-gray-850/50 hover:bg-gray-50'
-								: 'dark:hover:bg-gray-850/50 hover:bg-gray-50'}"
+							class="flex transition w-full px-2.5 py-1.5 rounded-2xl {model.write_access
+								? 'cursor-pointer hover:bg-gray-50/70 dark:hover:bg-gray-850/50'
+								: ''}"
 							id="model-item-{model.id}"
 							on:click={() => {
 								if (model.write_access) {
@@ -663,7 +662,7 @@
 											<div class="flex items-center justify-between w-full">
 												<Tooltip content={model.name} className=" w-fit" placement="top-start">
 													<a
-														class=" font-medium line-clamp-1 hover:underline capitalize"
+														class=" font-normal line-clamp-1 hover:underline capitalize"
 														href={`/?models=${encodeURIComponent(model.id)}`}
 													>
 														{model.name}
@@ -835,7 +834,7 @@
 				<div class=" w-full h-full flex flex-col justify-center items-center my-16 mb-24">
 					<div class="max-w-md text-center">
 						<div class=" text-3xl mb-3">😕</div>
-						<div class=" text-lg font-medium mb-1">{$i18n.t('No models found')}</div>
+						<div class=" text-lg font-normal mb-1">{$i18n.t('No models found')}</div>
 						<div class=" text-gray-500 text-center text-xs">
 							{$i18n.t('Try adjusting your search or filter to find what you are looking for.')}
 						</div>
@@ -850,30 +849,11 @@
 	</div>
 
 	{#if $config?.features.enable_community_sharing}
-		<div class=" my-16">
-			<div class=" text-xl font-medium mb-1 line-clamp-1">
-				{$i18n.t('Made by Open WebUI Community')}
-			</div>
-
-			<a
-				class=" flex cursor-pointer items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-850 w-full mb-2 px-3.5 py-1.5 rounded-xl transition"
-				href="https://openwebui.com/models"
-				target="_blank"
-			>
-				<div class=" self-center">
-					<div class=" font-medium line-clamp-1">{$i18n.t('Discover a model')}</div>
-					<div class=" text-sm line-clamp-1">
-						{$i18n.t('Discover, download, and explore model presets')}
-					</div>
-				</div>
-
-				<div>
-					<div>
-						<ChevronRight />
-					</div>
-				</div>
-			</a>
-		</div>
+		<CommunityDiscover
+			href="https://openwebui.com/models"
+			title={$i18n.t('Discover a model')}
+			description={$i18n.t('Discover, download, and explore model presets')}
+		/>
 	{/if}
 {:else}
 	<div class="w-full h-full flex justify-center items-center">

@@ -54,17 +54,21 @@
 		calendar: {
 			label: $i18n.t('Calendar'),
 			description: $i18n.t('List calendars, search, create, update, and delete calendar events')
+		},
+		subagents: {
+			label: $i18n.t('Sub-agents'),
+			description: $i18n.t('Delegate focused work to parallel sub-agents')
 		}
 	};
 
-	const allTools = Object.keys(toolLabels);
+	const allTools = Object.keys(toolLabels) as Array<keyof typeof toolLabels>;
 
 	export let builtinTools: Record<string, boolean> = {};
 </script>
 
 <div>
 	<div class="flex w-full justify-between mb-1">
-		<div class="self-center text-xs font-medium text-gray-500">{$i18n.t('Builtin Tools')}</div>
+		<div class="self-center text-xs font-normal text-gray-500">{$i18n.t('Builtin Tools')}</div>
 	</div>
 	<div class="flex items-center mt-2 flex-wrap">
 		{#each allTools as tool}

@@ -36,6 +36,7 @@ from open_webui.models.users import Users
 from open_webui.utils.auth import create_token
 from open_webui.utils.misc import parse_duration
 from open_webui.utils.task import prompt_template
+from open_webui.utils.terminals import get_terminal_server_url
 from starlette.datastructures import Headers
 
 log = logging.getLogger(__name__)
@@ -65,7 +66,7 @@ def _resolve_tz(tz: str = None) -> Optional[ZoneInfo]:
         return None
 
 
-def _parse_rule(s: str):
+def _parse_rule(s: str, now: Optional[datetime] = None):
     """Parse RRULE with clock-aligned DTSTART for sub-daily frequencies.
 
     MINUTELY/HOURLY rules use a fixed epoch DTSTART (2000-01-01 00:00)
@@ -77,6 +78,20 @@ def _parse_rule(s: str):
 
     if freq in ('MINUTELY', 'HOURLY'):
         epoch = datetime(2000, 1, 1, 0, 0, 0)
+        if (
+            now is not None
+            and s.startswith('RRULE:')
+            and '\n' not in s
+            and '\r' not in s
+            and set(parts) <= {'FREQ', 'INTERVAL', 'BYMINUTE', 'BYSECOND'}
+        ):
+            try:
+                interval = int(parts.get('INTERVAL', '1'))
+                if interval > 0:
+                    step = timedelta(minutes=interval) if freq == 'MINUTELY' else timedelta(hours=interval)
+                    return rrulestr(s, dtstart=epoch + ((now - epoch) // step) * step, ignoretz=True)
+            except (TypeError, ValueError):
+                pass
         return rrulestr(s, dtstart=epoch, ignoretz=True)
     return rrulestr(s, ignoretz=True)
 
@@ -88,12 +103,12 @@ def validate_rrule(s: str, tz: str = None) -> None:
     clock so that near-future schedules are not incorrectly rejected
     on servers whose system clock is ahead (e.g. UTC vs US timezones).
     """
-    try:
-        rule = _parse_rule(s)
-    except Exception as e:
-        raise ValueError(ERROR_MESSAGES.AUTOMATION_INVALID_RRULE(e))
     zi = _resolve_tz(tz)
     now = datetime.now(zi).replace(tzinfo=None) if zi else datetime.now()
+    try:
+        rule = _parse_rule(s, now)
+    except Exception as e:
+        raise ValueError(ERROR_MESSAGES.AUTOMATION_INVALID_RRULE(e))
     if rule.after(now) is None:
         raise ValueError(ERROR_MESSAGES.AUTOMATION_NO_FUTURE_RUNS)
 
@@ -102,7 +117,8 @@ def next_run_ns(s: str, tz: str = None) -> Optional[int]:
     """Next occurrence as epoch nanoseconds, respecting user timezone."""
     zi = _resolve_tz(tz)
     now = datetime.now(zi) if zi else datetime.now()
-    dt = _parse_rule(s).after(now.replace(tzinfo=None))
+    now_naive = now.replace(tzinfo=None)
+    dt = _parse_rule(s, now_naive).after(now_naive)
     if dt is None:
         return None
     if zi:
@@ -117,9 +133,9 @@ def next_n_runs_ns(s: str, n: int = 5, tz: str = None) -> list[int]:
     preview matches the user's local clock (same as next_run_ns).
     """
     zi = _resolve_tz(tz)
-    rule = _parse_rule(s)
     result = []
     now = datetime.now(zi).replace(tzinfo=None) if zi else datetime.now()
+    rule = _parse_rule(s, now)
     dt = now
     for _ in range(n):
         dt = rule.after(dt)
@@ -141,8 +157,8 @@ def rrule_interval_seconds(s: str) -> Optional[int]:
     """
     if 'COUNT=1' in s:
         return None
-    rule = _parse_rule(s)
     now = datetime.now()
+    rule = _parse_rule(s, now)
     first = rule.after(now)
     if first is None:
         return None
@@ -323,16 +339,11 @@ async def _set_terminal_cwd(app, server_id: str, user, cwd: str, chat_id: str) -
         log.warning(f'Terminal server {server_id} not found for CWD set')
         return
 
-    base_url = (connection.get('url') or '').rstrip('/')
+    base_url = get_terminal_server_url(connection)
     if not base_url:
         return
 
-    # Build target URL — route through orchestrator policy if configured
-    policy_id = connection.get('policy_id')
-    if connection.get('server_type') == 'orchestrator' and policy_id:
-        target_url = f'{base_url}/p/{policy_id}/files/cwd'
-    else:
-        target_url = f'{base_url}/files/cwd'
+    target_url = f'{base_url}/files/cwd'
 
     headers = {'Content-Type': 'application/json', 'X-User-Id': user.id}
     if chat_id:

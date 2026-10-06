@@ -2,6 +2,7 @@
 	import { onMount, getContext } from 'svelte';
 	import {
 		WEBUI_NAME,
+		config,
 		showSidebar,
 		functions,
 		user,
@@ -33,7 +34,10 @@
 				!$user?.permissions?.workspace?.prompts
 			) {
 				goto('/');
-			} else if ($page.url.pathname.includes('/tools') && !$user?.permissions?.workspace?.tools) {
+			} else if (
+				$page.url.pathname.includes('/tools') &&
+				(!$config?.features?.enable_plugins || !$user?.permissions?.workspace?.tools)
+			) {
 				goto('/');
 			} else if ($page.url.pathname.includes('/skills') && !$user?.permissions?.workspace?.skills) {
 				goto('/');
@@ -82,7 +86,7 @@
 
 				<div class="">
 					<div
-						class="flex gap-1 scrollbar-none overflow-x-auto w-fit text-center text-sm font-medium rounded-full bg-transparent py-1 touch-auto pointer-events-auto"
+						class="flex gap-1 scrollbar-none overflow-x-auto w-fit text-center text-sm font-normal rounded-full bg-transparent py-1 touch-auto pointer-events-auto"
 					>
 						{#if $user?.role === 'admin' || $user?.permissions?.workspace?.models}
 							<a
@@ -132,7 +136,7 @@
 							</a>
 						{/if}
 
-						{#if $user?.role === 'admin' || $user?.permissions?.workspace?.tools}
+						{#if $config?.features?.enable_plugins && ($user?.role === 'admin' || $user?.permissions?.workspace?.tools)}
 							<a
 								draggable="false"
 								aria-current={$page.url.pathname.includes('/workspace/tools') ? 'page' : null}
@@ -147,7 +151,7 @@
 					</div>
 				</div>
 
-				<!-- <div class="flex items-center text-xl font-medium">{$i18n.t('Workspace')}</div> -->
+				<!-- <div class="flex items-center text-xl font-normal">{$i18n.t('Workspace')}</div> -->
 			</div>
 		</nav>
 

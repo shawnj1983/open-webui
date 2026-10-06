@@ -1,11 +1,14 @@
 <script lang="ts">
-	import dayjs from 'dayjs';
 	import { toast } from 'svelte-sonner';
 	import { tick, getContext, onMount } from 'svelte';
 
 	import { models, settings } from '$lib/stores';
 	import { user as _user } from '$lib/stores';
-	import { copyToClipboard as _copyToClipboard, formatDate } from '$lib/utils';
+	import {
+		copyToClipboard as _copyToClipboard,
+		formatMessageTimestamp,
+		formatMessageTimestampFull
+	} from '$lib/utils';
 	import { WEBUI_API_BASE_URL, WEBUI_BASE_URL } from '$lib/constants';
 	import equal from 'fast-deep-equal';
 
@@ -16,11 +19,16 @@
 	import Markdown from './Markdown.svelte';
 	import Image from '$lib/components/common/Image.svelte';
 	import DeleteConfirmDialog from '$lib/components/common/ConfirmDialog.svelte';
-
-	import localizedFormat from 'dayjs/plugin/localizedFormat';
+	import SubagentResultRow from './SubagentResultRow.svelte';
 
 	const i18n = getContext('i18n');
-	dayjs.extend(localizedFormat);
+	type SubagentResult = {
+		async_subagent_result: true;
+		delegation_id?: string;
+		delegation_ids?: string[];
+		subagent_chat_id?: string;
+		subagent_chat_ids?: string[];
+	};
 
 	export let user;
 
@@ -54,6 +62,7 @@
 	let editScrollContainer: HTMLDivElement;
 
 	let message = structuredClone(history.messages[messageId]);
+	let subagentResult: SubagentResult | undefined;
 	$: if (history.messages) {
 		const source = history.messages[messageId];
 		if (source) {
@@ -64,6 +73,7 @@
 			}
 		}
 	}
+	$: subagentResult = message?.meta?.async_subagent_result ? message.meta : undefined;
 
 	const copyToClipboard = async (text) => {
 		const res = await _copyToClipboard(text);
@@ -133,7 +143,7 @@
 	id="message-{message.id}"
 	style="scroll-margin-top: 3rem;"
 >
-	{#if !($settings?.chatBubble ?? true)}
+	{#if !($settings?.chatBubble ?? true) && !subagentResult}
 		<div class={`shrink-0 ltr:mr-3 rtl:ml-3 mt-1`}>
 			<ProfileImage
 				src={user?.id
@@ -143,59 +153,19 @@
 			/>
 		</div>
 	{/if}
-	<div class="flex-auto w-0 max-w-full pl-1">
-		{#if !($settings?.chatBubble ?? true)}
+	<div class="flex-auto w-0 max-w-full {subagentResult ? '' : 'pl-1'}">
+		{#if !($settings?.chatBubble ?? true) && !subagentResult}
 			<div>
 				<Name>
 					{#if message.user}
 						{$i18n.t('You')}
-						<span class=" text-gray-500 text-sm font-medium">{message?.user ?? ''}</span>
+						<span class=" text-gray-500 text-sm font-normal">{message?.user ?? ''}</span>
 					{:else if $settings.showUsername || $_user?.name !== user?.name}
 						{user?.name ?? $i18n.t('You')}
 					{:else}
 						{$i18n.t('You')}
 					{/if}
-
-					{#if message.timestamp}
-						<div
-							class="self-center text-xs font-medium first-letter:capitalize ml-0.5 translate-y-[1px] {($settings?.highContrastMode ??
-							false)
-								? 'dark:text-gray-100 text-gray-900'
-								: 'invisible group-hover:visible transition'}"
-						>
-							<Tooltip content={dayjs(message.timestamp * 1000).format('LLLL')}>
-								<!-- $i18n.t('Today at {{LOCALIZED_TIME}}') -->
-								<!-- $i18n.t('Yesterday at {{LOCALIZED_TIME}}') -->
-								<!-- $i18n.t('{{LOCALIZED_DATE}} at {{LOCALIZED_TIME}}') -->
-
-								<span class="line-clamp-1"
-									>{$i18n.t(formatDate(message.timestamp * 1000), {
-										LOCALIZED_TIME: dayjs(message.timestamp * 1000).format('LT'),
-										LOCALIZED_DATE: dayjs(message.timestamp * 1000).format('L')
-									})}</span
-								>
-							</Tooltip>
-						</div>
-					{/if}
 				</Name>
-			</div>
-		{:else if message.timestamp}
-			<div class="flex justify-end pr-2 text-xs">
-				<div
-					class="text-[0.65rem] font-medium first-letter:capitalize mb-0.5 {($settings?.highContrastMode ??
-					false)
-						? 'dark:text-gray-100 text-gray-900'
-						: 'invisible group-hover:visible transition text-gray-400'}"
-				>
-					<Tooltip content={dayjs(message.timestamp * 1000).format('LLLL')}>
-						<span class="line-clamp-1"
-							>{$i18n.t(formatDate(message.timestamp * 1000), {
-								LOCALIZED_TIME: dayjs(message.timestamp * 1000).format('LT'),
-								LOCALIZED_DATE: dayjs(message.timestamp * 1000).format('L')
-							})}</span
-						>
-					</Tooltip>
-				</div>
 			</div>
 		{/if}
 
@@ -329,7 +299,7 @@
 						/>
 					</div>
 
-					<div class=" mt-2 mb-1 flex justify-between text-sm font-medium">
+					<div class=" mt-2 mb-1 flex justify-between text-sm font-normal">
 						<div>
 							<button
 								id="save-edit-message-button"
@@ -365,6 +335,8 @@
 						</div>
 					</div>
 				</div>
+			{:else if subagentResult}
+				<SubagentResultRow content={message.content} result={subagentResult} />
 			{:else if message.content !== ''}
 				<div class="w-full">
 					<div class="flex {($settings?.chatBubble ?? true) ? 'justify-end pb-1' : 'w-full'}">
@@ -394,12 +366,27 @@
 				</div>
 			{/if}
 
-			{#if edit !== true}
+			{#if edit !== true && !subagentResult}
 				<div
 					class=" flex {($settings?.chatBubble ?? true)
 						? 'justify-end'
 						: ''}  text-gray-600 dark:text-gray-500"
 				>
+					{#if message.timestamp}
+						<Tooltip
+							className="flex self-center"
+							content={formatMessageTimestampFull(message.timestamp * 1000)}
+							placement="bottom"
+						>
+							<time
+								datetime={new Date(message.timestamp * 1000).toISOString()}
+								class="invisible group-hover:visible mr-1 text-[0.6875rem] tabular-nums text-gray-400 dark:text-gray-600 select-none"
+							>
+								{formatMessageTimestamp(message.timestamp * 1000)}
+							</time>
+						</Tooltip>
+					{/if}
+
 					{#if !($settings?.chatBubble ?? true)}
 						{#if siblings.length > 1}
 							<div class="flex self-center" dir="ltr">
@@ -427,7 +414,7 @@
 
 								{#if messageIndexEdit}
 									<div
-										class="text-sm flex justify-center font-semibold self-center dark:text-gray-100 min-w-fit"
+										class="text-sm flex justify-center font-normal self-center dark:text-gray-100 min-w-fit"
 									>
 										<input
 											id="message-index-input-{message.id}"
@@ -448,13 +435,13 @@
 													messageIndexEdit = false;
 												}
 											}}
-											class="bg-transparent font-semibold self-center dark:text-gray-100 min-w-fit outline-hidden"
+											class="bg-transparent font-normal self-center dark:text-gray-100 min-w-fit outline-hidden"
 										/>/{siblings.length}
 									</div>
 								{:else}
 									<!-- svelte-ignore a11y-no-static-element-interactions -->
 									<div
-										class="text-sm tracking-widest font-semibold self-center dark:text-gray-100 min-w-fit"
+										class="text-sm tracking-widest font-normal self-center dark:text-gray-100 min-w-fit"
 										on:dblclick={async () => {
 											messageIndexEdit = true;
 
@@ -611,7 +598,7 @@
 
 								{#if messageIndexEdit}
 									<div
-										class="text-sm flex justify-center font-semibold self-center dark:text-gray-100 min-w-fit"
+										class="text-sm flex justify-center font-normal self-center dark:text-gray-100 min-w-fit"
 									>
 										<input
 											id="message-index-input-{message.id}"
@@ -632,13 +619,13 @@
 													messageIndexEdit = false;
 												}
 											}}
-											class="bg-transparent font-semibold self-center dark:text-gray-100 min-w-fit outline-hidden"
+											class="bg-transparent font-normal self-center dark:text-gray-100 min-w-fit outline-hidden"
 										/>/{siblings.length}
 									</div>
 								{:else}
 									<!-- svelte-ignore a11y-no-static-element-interactions -->
 									<div
-										class="text-sm tracking-widest font-semibold self-center dark:text-gray-100 min-w-fit"
+										class="text-sm tracking-widest font-normal self-center dark:text-gray-100 min-w-fit"
 										on:dblclick={async () => {
 											messageIndexEdit = true;
 
