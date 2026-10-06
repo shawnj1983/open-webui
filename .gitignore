@@ -311,3 +311,6 @@ cypress/videos
 cypress/screenshots
 .vscode/settings.json
 .cptr
+
+# YouTube content scraper runtime output
+scripts/youtube_content_scraper/output/
